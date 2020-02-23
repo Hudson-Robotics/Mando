@@ -149,37 +149,39 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    Color detectedColor = m_colorSensor.getColor();
+    Drive(.07, .07, 1, .08);
+
+    final Color detectedColor = m_colorSensor.getColor();
 
     String colorString;
-    ColorMatchResult match = m_colorMatcher.matchClosestColor(detectedColor);
+    final ColorMatchResult match = m_colorMatcher.matchClosestColor(detectedColor);
     m_colorMatcher.setConfidenceThreshold(.97);
     if (match.color == kBlueTarget) {
-    colorString = "Blue";
-    spark.set(0.87);
+      colorString = "Blue";
+      spark.set(0.87);
     } else if (match.color == kRedTarget) {
-    colorString = "Red";
-    spark.set(0.61);
+      colorString = "Red";
+      spark.set(0.61);
     } else if (match.color == kGreenTarget) {
-    colorString = "Green";
-    spark.set(0.77);
+      colorString = "Green";
+      spark.set(0.77);
     } else if (match.color == kYellowTarget) {
-    colorString = "Yellow";
-    spark.set(0.69);
+      colorString = "Yellow";
+      spark.set(0.69);
     } else {
-    colorString = "Unknown";
-    spark.set(-0.05);
+      colorString = "Unknown";
+      spark.set(-0.05);
     }
 
-    // SmartDashboard.putNumber("Red", detectedColor.red);
-    // SmartDashboard.putNumber("Green", detectedColor.green);
-    // SmartDashboard.putNumber("Blue", detectedColor.blue);
-    // SmartDashboard.putNumber("Confidence", match.confidence);
-    // SmartDashboa
+    SmartDashboard.putNumber("Red", detectedColor.red);
+    SmartDashboard.putNumber("Green", detectedColor.green);
+    SmartDashboard.putNumber("Blue", detectedColor.blue);
+    SmartDashboard.putNumber("Confidence", match.confidence);
+    SmartDashboard.putString("Detected Color", colorString);
 
-    double x = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0.0);
-    double y = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0.0);
-    double area = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ta").getDouble(0.0);
+    final double x = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0.0);
+    final double y = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0.0);
+    final double area = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ta").getDouble(0.0);
 
     // post to smart dashboard periodically
     SmartDashboard.putNumber("LimelightX", x);
@@ -187,13 +189,13 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("LimelightArea", area);
 
     // read PID coefficients from SmartDashboard
-    double p = SmartDashboard.getNumber("P Gain", 0);
-    double i = SmartDashboard.getNumber("I Gain", 0);
-    double d = SmartDashboard.getNumber("D Gain", 0);
-    double iz = SmartDashboard.getNumber("I Zone", 0);
-    double ff = SmartDashboard.getNumber("Feed Forward", 0);
-    double max = SmartDashboard.getNumber("Max Output", 0);
-    double min = SmartDashboard.getNumber("Min Output", 0);
+    final double p = SmartDashboard.getNumber("P Gain", 0);
+    final double i = SmartDashboard.getNumber("I Gain", 0);
+    final double d = SmartDashboard.getNumber("D Gain", 0);
+    final double iz = SmartDashboard.getNumber("I Zone", 0);
+    final double ff = SmartDashboard.getNumber("Feed Forward", 0);
+    final double max = SmartDashboard.getNumber("Max Output", 0);
+    final double min = SmartDashboard.getNumber("Min Output", 0);
 
     // if PID coefficients on SmartDashboard have changed, write new values to
     // controller
@@ -235,7 +237,7 @@ public class Robot extends TimedRobot {
      * com.revrobotics.ControlType.kPosition com.revrobotics.ControlType.kVelocity
      * com.revrobotics.ControlType.kVoltage
      */
-    double setPoint = xBoxCtrlr.getY(Hand.kRight) * maxRPM;
+    final double setPoint = xBoxCtrlr.getY(Hand.kRight) * maxRPM;
     m_pidController.setReference(setPoint, ControlType.kVelocity);
 
     SmartDashboard.putNumber("SetPoint", setPoint);
@@ -292,14 +294,14 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
   }
 
-  private void Drive(double rampUp, double rampDown, double maximum, double deadBand) {
+  private void Drive(final double rampUp, final double rampDown, final double maximum, final double deadBand) {
 
     drvMode.setDeadband(deadBand);
     drvMode.setSafetyEnabled(false);
 
-    double leftSpeed = xBoxCtrlr.getY(Hand.kLeft) * maximum;
-    double rightSpeed = xBoxCtrlr.getY(Hand.kLeft) * maximum;
-    boolean squareInputs = true;
+    final double leftSpeed = xBoxCtrlr.getY(Hand.kLeft) * maximum;
+    final double rightSpeed = xBoxCtrlr.getY(Hand.kLeft) * maximum;
+    final boolean squareInputs = true;
 
     drvMode.tankDrive(leftSpeed, rightSpeed, squareInputs);
   }
