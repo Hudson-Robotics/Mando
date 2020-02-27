@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Spark;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+
 import com.revrobotics.ColorSensorV3;
 import com.revrobotics.ColorMatchResult;
 import com.revrobotics.ColorMatch;
@@ -31,9 +33,11 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-
+            
 import edu.wpi.first.cameraserver.CameraServer;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the TimedRobot
@@ -52,17 +56,24 @@ public class Robot extends TimedRobot {
   // m_pidController = m_motor.getPIDController();
   // m_encoder = m_motor.getEncoder();
 
-  CANSparkMax motorLftMaster = new CANSparkMax(1, MotorType.kBrushless);
-  CANSparkMax motorLftSlave =  new CANSparkMax(2, MotorType.kBrushless);
-  CANSparkMax motorRtMaster =  new CANSparkMax(3, MotorType.kBrushless);
-  CANSparkMax motorRtSlave = new CANSparkMax(4, MotorType.kBrushless);
+  CANSparkMax motorLeftMaster = new CANSparkMax(1, MotorType.kBrushless);
+  CANSparkMax motorLeftSlave = new CANSparkMax(2, MotorType.kBrushless);
+  CANSparkMax motorRightMaster = new CANSparkMax(3, MotorType.kBrushless);
+  CANSparkMax motorRighttSlave = new CANSparkMax(4, MotorType.kBrushless);
 
-  CANSparkMax motorShootTop =  new CANSparkMax(3, MotorType.kBrushless);
-  CANSparkMax motorShootBottom = new CANSparkMax(4, MotorType.kBrushless);
+  CANSparkMax motorShootTop = new CANSparkMax(5, MotorType.kBrushless);
+  CANSparkMax motorShootBottom = new CANSparkMax(6, MotorType.kBrushless);
 
+  WPI_TalonSRX motorInfeedIn = new WPI_TalonSRX(7);
+  WPI_TalonSRX motorInfeedCross = new WPI_TalonSRX(8);
+  WPI_TalonSRX motorInfeedWinch = new WPI_TalonSRX(9);
 
-  SpeedControllerGroup rightDrive = new SpeedControllerGroup(motorRtMaster, motorRtSlave);
-  SpeedControllerGroup leftDrive = new SpeedControllerGroup(motorLftMaster, motorLftSlave);
+  WPI_TalonSRX motorMagazine = new WPI_TalonSRX(10);
+  WPI_TalonSRX motorColorWheel = new WPI_TalonSRX(11);
+  WPI_TalonSRX motorClimb = new WPI_TalonSRX(12);
+
+  SpeedControllerGroup rightDrive = new SpeedControllerGroup(motorRightMaster, motorRighttSlave);
+  SpeedControllerGroup leftDrive = new SpeedControllerGroup(motorLeftMaster, motorLeftSlave);
   DifferentialDrive drvMode = new DifferentialDrive(leftDrive, rightDrive);
 
   XboxController xBoxCtrlr = new XboxController(0);
@@ -295,7 +306,6 @@ public class Robot extends TimedRobot {
   }
 
   private void Drive(final double rampUp, final double rampDown, final double maximum, final double deadBand) {
-
     drvMode.setDeadband(deadBand);
     drvMode.setSafetyEnabled(false);
 
