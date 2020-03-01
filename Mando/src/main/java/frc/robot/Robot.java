@@ -393,6 +393,7 @@ public class Robot extends TimedRobot {
   }
 
   private void emptyMagRapidFire(double HighMedLow) { // shoot all balls in the mag.
+    //teting github
    if (buttonBoard.getRawButton(3)){
        motorShootBottom.set(HighMedLow); // ramp up wheels
     motorShootTop.set(-HighMedLow);
