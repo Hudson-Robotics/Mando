@@ -8,6 +8,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Spark;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import com.revrobotics.ColorSensorV3;
 import com.revrobotics.ColorMatchResult;
@@ -35,8 +37,11 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-            
+
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -56,27 +61,28 @@ public class Robot extends TimedRobot {
   // m_pidController = m_motor.getPIDController();
   // m_encoder = m_motor.getEncoder();
 
-  CANSparkMax motorLeftMaster = new CANSparkMax(1, MotorType.kBrushless);
-  CANSparkMax motorLeftSlave = new CANSparkMax(2, MotorType.kBrushless);
-  CANSparkMax motorRightMaster = new CANSparkMax(3, MotorType.kBrushless);
-  CANSparkMax motorRighttSlave = new CANSparkMax(4, MotorType.kBrushless);
+  CANSparkMax motorLeftMaster = new CANSparkMax(4, MotorType.kBrushless);
+  CANSparkMax motorLeftSlave = new CANSparkMax(3, MotorType.kBrushless);
+  CANSparkMax motorRightMaster = new CANSparkMax(2, MotorType.kBrushless);
+  CANSparkMax motorRighttSlave = new CANSparkMax(1, MotorType.kBrushless);
 
   CANSparkMax motorShootTop = new CANSparkMax(5, MotorType.kBrushless);
   CANSparkMax motorShootBottom = new CANSparkMax(6, MotorType.kBrushless);
 
-  WPI_TalonSRX motorInfeedIn = new WPI_TalonSRX(7);
-  WPI_TalonSRX motorInfeedCross = new WPI_TalonSRX(8);
+  WPI_TalonSRX motorInfeedIn = new WPI_TalonSRX(1);
+  WPI_TalonSRX motorInfeedCross = new WPI_TalonSRX(6);
   WPI_TalonSRX motorInfeedWinch = new WPI_TalonSRX(9);
 
-  WPI_TalonSRX motorMagazine = new WPI_TalonSRX(10);
-  WPI_TalonSRX motorColorWheel = new WPI_TalonSRX(11);
-  WPI_TalonSRX motorClimb = new WPI_TalonSRX(12);
+  WPI_TalonSRX motorMagazine = new WPI_TalonSRX(2);
+  WPI_TalonSRX motorColorWheel = new WPI_TalonSRX(5);
+  WPI_TalonSRX motorClimb = new WPI_TalonSRX(3);
 
   SpeedControllerGroup rightDrive = new SpeedControllerGroup(motorRightMaster, motorRighttSlave);
   SpeedControllerGroup leftDrive = new SpeedControllerGroup(motorLeftMaster, motorLeftSlave);
   DifferentialDrive drvMode = new DifferentialDrive(leftDrive, rightDrive);
 
   XboxController xBoxCtrlr = new XboxController(0);
+  Joystick buttonBoard = new Joystick(1);
 
   private final I2C.Port i2cPort = I2C.Port.kOnboard;
   private final ColorSensorV3 m_colorSensor = new ColorSensorV3(i2cPort);
@@ -87,20 +93,20 @@ public class Robot extends TimedRobot {
   private final Color kRedTarget = ColorMatch.makeColor(0.561, 0.232, 0.114);
   private final Color kYellowTarget = ColorMatch.makeColor(0.361, 0.524, 0.113);
 
-  private static final int deviceID = 1;
+  private static final int deviceID = 63;
   private CANSparkMax m_motor;
   private CANPIDController m_pidController;
   private CANEncoder m_encoder;
   public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
 
-  Spark spark = new Spark(0);
+  Spark BlinkinMono = new Spark(0);
+  Spark BlinkinMulti = new Spark(1);
 
   // NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-  // NetworkTable table =
-  // NetworkTableInstance.getDefault().getTable("10.42.95.11");
-  // NetworkTableEntry tx = table.getEntry("tx");
-  // NetworkTableEntry ty = table.getEntry("ty");
-  // NetworkTableEntry ta = table.getEntry("ta");
+  NetworkTable table = NetworkTableInstance.getDefault().getTable("10.42.95.11");
+  NetworkTableEntry tx = table.getEntry("tx");
+  NetworkTableEntry ty = table.getEntry("ty");
+  NetworkTableEntry ta = table.getEntry("ta");
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -149,6 +155,15 @@ public class Robot extends TimedRobot {
 
   }
 
+  public CANSparkMax SmartMotionInit(int deviceID,CANSparkMax motor, CANPIDController pid,CANEncoder encoder){
+    motor = new CANSparkMax(deviceID, MotorType.kBrushless);
+    
+    
+    motor.restoreFactoryDefaults();
+
+    return motor;
+
+  }
   /**
    * This function is called every robot packet, no matter the mode. Use this for
    * items like diagnostics that you want ran during disabled, autonomous,
@@ -160,8 +175,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    Drive(.07, .07, 1, .08);
-
     final Color detectedColor = m_colorSensor.getColor();
 
     String colorString;
@@ -169,19 +182,19 @@ public class Robot extends TimedRobot {
     m_colorMatcher.setConfidenceThreshold(.97);
     if (match.color == kBlueTarget) {
       colorString = "Blue";
-      spark.set(0.87);
+      BlinkinMulti.set(0.87);
     } else if (match.color == kRedTarget) {
       colorString = "Red";
-      spark.set(0.61);
+      BlinkinMulti.set(0.61);
     } else if (match.color == kGreenTarget) {
       colorString = "Green";
-      spark.set(0.77);
+      BlinkinMulti.set(0.77);
     } else if (match.color == kYellowTarget) {
       colorString = "Yellow";
-      spark.set(0.69);
+      BlinkinMulti.set(0.69);
     } else {
       colorString = "Unknown";
-      spark.set(-0.05);
+      BlinkinMulti.set(-0.05);
     }
 
     SmartDashboard.putNumber("Red", detectedColor.red);
@@ -275,20 +288,24 @@ public class Robot extends TimedRobot {
     // System.out.println("Auto selected: " + m_autoSelected);
   }
 
+  boolean autoComplete;
+
   /**
    * This function is called periodically during autonomous.
    */
   @Override
   public void autonomousPeriodic() {
-    // switch (m_autoSelected) {
-    // case kCustomAuto:
-    // // Put custom auto code here
-    // break;
-    // case kDefaultAuto:
-    // default:
-    // // Put default auto code here
-    // break;
-    // }
+    System.out.println("Robot.autonomous()");
+    drvMode.setSafetyEnabled(false);
+
+    if (!autoComplete) {
+      drvMode.tankDrive(0.5, 0.5); // drive forwards half speed
+      Timer.delay(2.0); // for 2 seconds.
+      drvMode.tankDrive(0.0, 0.0); // stop motors.
+      autoComplete = true;
+      System.out.println("Auto Complete");
+    }
+
   }
 
   /**
@@ -296,6 +313,11 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
+    DriveManual(.07, .07, 1, .08);
+    InfeedManual();
+    ClimbUpDn();
+    emptyMagRapidFire(.25);
+    colorWheel();
   }
 
   /**
@@ -305,14 +327,105 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
   }
 
-  private void Drive(final double rampUp, final double rampDown, final double maximum, final double deadBand) {
+  private void DriveManual(final double rampUp, final double rampDown, final double maximum, final double deadBand) {
     drvMode.setDeadband(deadBand);
     drvMode.setSafetyEnabled(false);
 
-    final double leftSpeed = xBoxCtrlr.getY(Hand.kLeft) * maximum;
-    final double rightSpeed = xBoxCtrlr.getY(Hand.kLeft) * maximum;
+    final double leftSpeed = xBoxCtrlr.getY(Hand.kLeft) * -maximum;
+    final double rightSpeed = xBoxCtrlr.getY(Hand.kRight) * -maximum;
     final boolean squareInputs = true;
 
     drvMode.tankDrive(leftSpeed, rightSpeed, squareInputs);
   }
+
+  private void DriveAuto(final double rampUp, final double rampDown, final double maximum, final double deadBand) {
+    // drvMode.setDeadband(deadBand);
+    // drvMode.setSafetyEnabled(false);
+
+    // final double leftSpeed = xBoxCtrlr.getY(Hand.kLeft) * maximum;
+    // final double rightSpeed = xBoxCtrlr.getY(Hand.kRight) * maximum;
+    // final boolean squareInputs = true;
+
+    // drvMode.tankDrive(leftSpeed, rightSpeed, squareInputs);
+  }
+
+  boolean infeedOn;
+
+  private void InfeedManual() {
+    // drvMode.setDeadband(deadBand);
+    // drvMode.setSafetyEnabled(false);
+
+    // final double leftSpeed = xBoxCtrlr.getY(Hand.kLeft) * maximum;
+    // final double rightSpeed = xBoxCtrlr.getY(Hand.kRight) * maximum;
+    // final boolean squareInputs = true;
+
+    // drvMode.tankDrive(leftSpeed, rightSpeed, squareInputs);
+    // System.out.println("Infeed Status:" + infeedOn);
+    // System.out.println("Button (7) Infeed Status:" +
+    // buttonBoard.getRawButton(7));
+
+    if (buttonBoard.getRawButtonPressed(7) && infeedOn) {
+      infeedOn = false;
+     } else {
+      infeedOn = true;
+         }
+
+    System.out.println("Infeed Status:" + infeedOn);
+
+    // if (infeedOn) {
+    //   motorInfeedCross.set(.5);
+    //   motorInfeedIn.set(.5);
+    // } else {
+    //   motorInfeedCross.stopMotor();
+    //   motorInfeedIn.stopMotor();
+    // }
+
+  }
+
+  private void ClimbUpDn() { // buttons 5 and 9 on the buttonBoard
+    if (buttonBoard.getRawButton(5)) { // extend climber claw
+      motorClimb.set(-.25);
+    } else if (buttonBoard.getRawButton(9)) { // contract climber claw
+      motorClimb.set(.25);
+    } else {
+      motorClimb.set(0); // stop climber motor action
+    }
+  }
+
+  private void emptyMagRapidFire(double HighMedLow) { // shoot all balls in the mag.
+   if (buttonBoard.getRawButton(3)){
+       motorShootBottom.set(HighMedLow); // ramp up wheels
+    motorShootTop.set(-HighMedLow);
+    Timer.delay(0.5); // for half second
+    motorMagazine.set(1); // start feeding balls
+    Timer.delay(2); // wate 2 seconds
+    motorMagazine.stopMotor(); // stop feeding bals
+    motorShootBottom.stopMotor(); // stop shooter wheels
+    motorShootTop.stopMotor();;
+   }
+  
+  }
+
+  private void colorWheel(){
+    if (buttonBoard.getRawButton(4)){
+      motorColorWheel.set(.5);
+    }
+    ifelse (buttonBoard.getRawButton(8)) {
+      
+    } else {
+      
+    }
+    else {
+      motorColorWheel.stopMotor();
+    }
+
+    if (buttonBoard.getRawButton(8)){
+      motorColorWheel.set(-.5);
+    }
+    else {
+      motorColorWheel.stopMotor();
+    }
+
+  }
+
 }
