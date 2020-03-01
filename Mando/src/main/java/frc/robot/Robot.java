@@ -155,15 +155,15 @@ public class Robot extends TimedRobot {
 
   }
 
-  public CANSparkMax SmartMotionInit(int deviceID,CANSparkMax motor, CANPIDController pid,CANEncoder encoder){
+  public CANSparkMax SmartMotionInit(int deviceID, CANSparkMax motor, CANPIDController pid, CANEncoder encoder) {
     motor = new CANSparkMax(deviceID, MotorType.kBrushless);
-    
-    
+
     motor.restoreFactoryDefaults();
 
     return motor;
 
   }
+
   /**
    * This function is called every robot packet, no matter the mode. Use this for
    * items like diagnostics that you want ran during disabled, autonomous,
@@ -313,11 +313,23 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    DriveManual(.07, .07, 1, .08);
+    // -------------------------------------------- set speed using triggers
+    double maxSpd = .5;
+    if (xBoxCtrlr.getTriggerAxis(Hand.kLeft) > .5 && xBoxCtrlr.getTriggerAxis(Hand.kRight) < .5) {
+      maxSpd = .75;
+    }
+
+    if (xBoxCtrlr.getTriggerAxis(Hand.kLeft) > .5 && xBoxCtrlr.getTriggerAxis(Hand.kRight) > .5) {
+      maxSpd = .9;
+    }
+    DriveManual(maxSpd, .08);
+    // -------------------------------------------- end set speed using triggers
+
     InfeedManual();
     ClimbUpDn();
-    emptyMagRapidFire(.25);
+    emptyMagRapidFire();
     colorWheel();
+    motorInfeedWinchUpDn();
   }
 
   /**
@@ -327,7 +339,7 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
   }
 
-  private void DriveManual(final double rampUp, final double rampDown, final double maximum, final double deadBand) {
+  private void DriveManual(final double maximum, final double deadBand) {
     drvMode.setDeadband(deadBand);
     drvMode.setSafetyEnabled(false);
 
@@ -364,21 +376,19 @@ public class Robot extends TimedRobot {
     // System.out.println("Button (7) Infeed Status:" +
     // buttonBoard.getRawButton(7));
 
-    if (buttonBoard.getRawButtonPressed(7) && infeedOn) {
-      infeedOn = false;
-     } else {
-      infeedOn = true;
-         }
+    if (buttonBoard.getRawButtonPressed(7)) {
+      infeedOn = !infeedOn;
+    }
 
     System.out.println("Infeed Status:" + infeedOn);
 
-    // if (infeedOn) {
-    //   motorInfeedCross.set(.5);
-    //   motorInfeedIn.set(.5);
-    // } else {
-    //   motorInfeedCross.stopMotor();
-    //   motorInfeedIn.stopMotor();
-    // }
+    if (infeedOn) {
+      motorInfeedCross.set(.5);
+      motorInfeedIn.set(.5);
+    } else {
+      motorInfeedCross.stopMotor();
+      motorInfeedIn.stopMotor();
+    }
 
   }
 
@@ -388,35 +398,74 @@ public class Robot extends TimedRobot {
     } else if (buttonBoard.getRawButton(9)) { // contract climber claw
       motorClimb.set(.25);
     } else {
-      motorClimb.set(0); // stop climber motor action
+      motorClimb.stopMotor(); // stop climber motor action
     }
   }
 
-  private void emptyMagRapidFire(double HighMedLow) { // shoot all balls in the mag.
+  boolean shootAllBalls = false;
+  int countCalled = 0;
 
-   if (buttonBoard.getRawButton(3)){
-       motorShootBottom.set(HighMedLow); // ramp up wheels
-    motorShootTop.set(-HighMedLow);
-    Timer.delay(0.5); // for half second
-    motorMagazine.set(1); // start feeding balls
-    Timer.delay(2); // wate 2 seconds
-    motorMagazine.stopMotor(); // stop feeding bals
-    motorShootBottom.stopMotor(); // stop shooter wheels
-    motorShootTop.stopMotor();;
-   }
-  
+  private void emptyMagRapidFire() { // shoot all balls in the mag.
+    // BUtton ids - 1->Low, 2->Med, 3->high
+    double spdTopWheel = .9;
+    double spdLowWHeel = .9;
+    int maxTimesCalled = 50;
+
+    if (countCalled > maxTimesCalled) {
+      countCalled = 0;
+      shootAllBalls = false;
+    }
+
+    if (buttonBoard.getRawButton(1)) { // shoot at lower target
+      shootAllBalls = true;
+      spdLowWHeel = .25;
+    }
+
+    if (buttonBoard.getRawButton(2)) { // shoot at med target
+      shootAllBalls = true;
+      spdLowWHeel = .5;
+    }
+
+    if (buttonBoard.getRawButton(3)) { // shoot at high target
+      shootAllBalls = true;
+    }
+
+    if (shootAllBalls && countCalled == 0) {
+      motorShootBottom.set(spdLowWHeel); // ramp up wheels
+      motorShootTop.set(-spdTopWheel);
+      Timer.delay(0.5); // wait half second
+
+      motorMagazine.set(.25); // start feeding balls
+      Timer.delay(2); // wait 2 seconds
+
+      motorMagazine.stopMotor(); // stop feeding bals
+      motorShootBottom.stopMotor(); // stop shooter wheels
+      motorShootTop.stopMotor();
+    }
+    countCalled = (shootAllBalls ? countCalled++ : 0);
   }
 
-  private void colorWheel(){
-    if (buttonBoard.getRawButton(4)){
+  private void colorWheel() {
+    if (buttonBoard.getRawButton(4)) {
       motorColorWheel.set(.5);
-    }
-    else if (buttonBoard.getRawButton(8)) {
+    } else if (buttonBoard.getRawButton(8)) {
       motorColorWheel.set(-.5);
     } else {
-         motorColorWheel.stopMotor();
+      motorColorWheel.stopMotor();
     }
+  }
 
+  private void motorInfeedWinchUpDn() {  //-- raise / lower intake arm
+    double UpDn = buttonBoard.getY();  //-- joystick puller back or pushed forward
+    double WinchSpd = .25;   //-- speed to raise / lower arm
+
+    if (UpDn == 1) {
+      motorInfeedWinch.set(WinchSpd);
+    } else if (UpDn == -1) {
+      motorInfeedWinch.set(-WinchSpd);
+    } else {
+      motorInfeedWinch.stopMotor();
+    }
   }
 
 }
