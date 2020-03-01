@@ -61,10 +61,15 @@ public class Robot extends TimedRobot {
   // m_pidController = m_motor.getPIDController();
   // m_encoder = m_motor.getEncoder();
 
-  CANSparkMax motorLeftMaster = new CANSparkMax(4, MotorType.kBrushless);
-  CANSparkMax motorLeftSlave = new CANSparkMax(3, MotorType.kBrushless);
-  CANSparkMax motorRightMaster = new CANSparkMax(2, MotorType.kBrushless);
-  CANSparkMax motorRighttSlave = new CANSparkMax(1, MotorType.kBrushless);
+  CANSparkMax motorLeftMaster = SmartMotionInit(4);
+  CANSparkMax motorLeftSlave = SmartMotionInit(3);
+  CANSparkMax motorRightMaster = SmartMotionInit(2);
+  CANSparkMax motorRighttSlave = SmartMotionInit(1);
+
+  // CANSparkMax motorLeftMaster = new CANSparkMax(4, MotorType.kBrushless);
+  // CANSparkMax motorLeftSlave = new CANSparkMax(3, MotorType.kBrushless);
+  // CANSparkMax motorRightMaster = new CANSparkMax(2, MotorType.kBrushless);
+  // CANSparkMax motorRighttSlave = new CANSparkMax(1, MotorType.kBrushless);
 
   CANSparkMax motorShootTop = new CANSparkMax(5, MotorType.kBrushless);
   CANSparkMax motorShootBottom = new CANSparkMax(6, MotorType.kBrushless);
@@ -145,25 +150,34 @@ public class Robot extends TimedRobot {
     m_pidController.setFF(kFF);
     m_pidController.setOutputRange(kMinOutput, kMaxOutput);
 
-    SmartDashboard.putNumber("P Gain", kP);
-    SmartDashboard.putNumber("I Gain", kI);
-    SmartDashboard.putNumber("D Gain", kD);
-    SmartDashboard.putNumber("I Zone", kIz);
-    SmartDashboard.putNumber("Feed Forward", kFF);
-    SmartDashboard.putNumber("Max Output", kMaxOutput);
-    SmartDashboard.putNumber("Min Output", kMinOutput);
-
   }
 
-  public CANSparkMax SmartMotionInit(int deviceID,CANSparkMax motor, CANPIDController pid,CANEncoder encoder){
-    motor = new CANSparkMax(deviceID, MotorType.kBrushless);
-    
-    
+  public CANSparkMax SmartMotionInit(int deviceID) {
+    CANSparkMax motor = new CANSparkMax(deviceID, MotorType.kBrushless);
     motor.restoreFactoryDefaults();
+    CANPIDController pid = motor.getPIDController();
+    // encoder = motor.getEncoder();
+
+    kP = 6e-5;
+    kI = 0;
+    kD = 0;
+    kIz = 0;
+    kFF = 0.000015;
+    kMaxOutput = 1;
+    kMinOutput = -1;
+    maxRPM = 5700;
+
+    pid.setP(kP);
+    pid.setI(kI);
+    pid.setD(kD);
+    pid.setIZone(kIz);
+    pid.setFF(kFF);
+    pid.setOutputRange(kMinOutput, kMaxOutput);
 
     return motor;
 
   }
+
   /**
    * This function is called every robot packet, no matter the mode. Use this for
    * items like diagnostics that you want ran during disabled, autonomous,
@@ -366,18 +380,18 @@ public class Robot extends TimedRobot {
 
     if (buttonBoard.getRawButtonPressed(7) && infeedOn) {
       infeedOn = false;
-     } else {
+    } else {
       infeedOn = true;
-         }
+    }
 
     System.out.println("Infeed Status:" + infeedOn);
 
     // if (infeedOn) {
-    //   motorInfeedCross.set(.5);
-    //   motorInfeedIn.set(.5);
+    // motorInfeedCross.set(.5);
+    // motorInfeedIn.set(.5);
     // } else {
-    //   motorInfeedCross.stopMotor();
-    //   motorInfeedIn.stopMotor();
+    // motorInfeedCross.stopMotor();
+    // motorInfeedIn.stopMotor();
     // }
 
   }
@@ -393,27 +407,27 @@ public class Robot extends TimedRobot {
   }
 
   private void emptyMagRapidFire(double HighMedLow) { // shoot all balls in the mag.
-   if (buttonBoard.getRawButton(3)){
-       motorShootBottom.set(HighMedLow); // ramp up wheels
-    motorShootTop.set(-HighMedLow);
-    Timer.delay(0.5); // for half second
-    motorMagazine.set(1); // start feeding balls
-    Timer.delay(2); // wate 2 seconds
-    motorMagazine.stopMotor(); // stop feeding bals
-    motorShootBottom.stopMotor(); // stop shooter wheels
-    motorShootTop.stopMotor();;
-   }
-  
+    if (buttonBoard.getRawButton(3)) {
+      motorShootBottom.set(HighMedLow); // ramp up wheels
+      motorShootTop.set(-HighMedLow);
+      Timer.delay(0.5); // for half second
+      motorMagazine.set(1); // start feeding balls
+      Timer.delay(2); // wate 2 seconds
+      motorMagazine.stopMotor(); // stop feeding bals
+      motorShootBottom.stopMotor(); // stop shooter wheels
+      motorShootTop.stopMotor();
+      ;
+    }
+
   }
 
-  private void colorWheel(){
-    if (buttonBoard.getRawButton(4)){
+  private void colorWheel() {
+    if (buttonBoard.getRawButton(4)) {
       motorColorWheel.set(.5);
-    }
-    else if (buttonBoard.getRawButton(8)) {
+    } else if (buttonBoard.getRawButton(8)) {
       motorColorWheel.set(-.5);
     } else {
-         motorColorWheel.stopMotor();
+      motorColorWheel.stopMotor();
     }
 
   }
