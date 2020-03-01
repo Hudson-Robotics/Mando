@@ -410,20 +410,10 @@ public class Robot extends TimedRobot {
     if (buttonBoard.getRawButton(4)){
       motorColorWheel.set(.5);
     }
-    ifelse (buttonBoard.getRawButton(8)) {
-      
-    } else {
-      
-    }
-    else {
-      motorColorWheel.stopMotor();
-    }
-
-    if (buttonBoard.getRawButton(8)){
+    else if (buttonBoard.getRawButton(8)) {
       motorColorWheel.set(-.5);
-    }
-    else {
-      motorColorWheel.stopMotor();
+    } else {
+         motorColorWheel.stopMotor();
     }
 
   }
