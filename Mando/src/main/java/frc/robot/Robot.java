@@ -407,18 +407,18 @@ public class Robot extends TimedRobot {
   }
 
   private void emptyMagRapidFire(double HighMedLow) { // shoot all balls in the mag.
-    if (buttonBoard.getRawButton(3)) {
-      motorShootBottom.set(HighMedLow); // ramp up wheels
-      motorShootTop.set(-HighMedLow);
-      Timer.delay(0.5); // for half second
-      motorMagazine.set(1); // start feeding balls
-      Timer.delay(2); // wate 2 seconds
-      motorMagazine.stopMotor(); // stop feeding bals
-      motorShootBottom.stopMotor(); // stop shooter wheels
-      motorShootTop.stopMotor();
-      ;
-    }
 
+   if (buttonBoard.getRawButton(3)){
+       motorShootBottom.set(HighMedLow); // ramp up wheels
+    motorShootTop.set(-HighMedLow);
+    Timer.delay(0.5); // for half second
+    motorMagazine.set(1); // start feeding balls
+    Timer.delay(2); // wate 2 seconds
+    motorMagazine.stopMotor(); // stop feeding bals
+    motorShootBottom.stopMotor(); // stop shooter wheels
+    motorShootTop.stopMotor();;
+   }
+  
   }
 
   private void colorWheel() {
