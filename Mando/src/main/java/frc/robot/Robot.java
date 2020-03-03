@@ -76,7 +76,7 @@ public class Robot extends TimedRobot {
 
   WPI_TalonSRX motorInfeedIn = new WPI_TalonSRX(1);
   WPI_TalonSRX motorInfeedCross = new WPI_TalonSRX(6);
-  WPI_TalonSRX motorInfeedWinch = new WPI_TalonSRX(9);
+  WPI_TalonSRX motorInfeedWinch = new WPI_TalonSRX(4);
 
   WPI_TalonSRX motorMagazine = new WPI_TalonSRX(2);
   WPI_TalonSRX motorColorWheel = new WPI_TalonSRX(5);
@@ -98,11 +98,11 @@ public class Robot extends TimedRobot {
   private final Color kRedTarget = ColorMatch.makeColor(0.561, 0.232, 0.114);
   private final Color kYellowTarget = ColorMatch.makeColor(0.361, 0.524, 0.113);
 
-  private static final int deviceID = 63;
-  private CANSparkMax m_motor;
-  private CANPIDController m_pidController;
-  private CANEncoder m_encoder;
-  public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM;
+  // private static final int deviceID = 63;
+  // private CANSparkMax m_motor;
+  // private CANPIDController m_pidController;
+  // private CANEncoder m_encoder;
+  public double kP, kI, kD, kIz, kFF, kMaxOutput, kMinOutput, maxRPM, maxVel, minVel, maxAcc, allowedErr;
 
   Spark BlinkinMono = new Spark(0);
   Spark BlinkinMulti = new Spark(1);
@@ -129,50 +129,58 @@ public class Robot extends TimedRobot {
     m_colorMatcher.addColorMatch(kRedTarget);
     m_colorMatcher.addColorMatch(kYellowTarget);
 
-    m_motor = new CANSparkMax(deviceID, MotorType.kBrushless);
-    m_motor.restoreFactoryDefaults();
-    m_pidController = m_motor.getPIDController();
-    m_encoder = m_motor.getEncoder();
+    // m_motor = new CANSparkMax(deviceID, MotorType.kBrushless);
+    // m_motor.restoreFactoryDefaults();
+    // m_pidController = m_motor.getPIDController();
+    // m_encoder = m_motor.getEncoder();
 
-    kP = 6e-5;
-    kI = 0;
-    kD = 0;
-    kIz = 0;
-    kFF = 0.000015;
-    kMaxOutput = 1;
-    kMinOutput = -1;
-    maxRPM = 5700;
+    // kP = 6e-5;
+    // kI = 0;
+    // kD = 0;
+    // kIz = 0;
+    // kFF = 0.000015;
+    // kMaxOutput = 1;
+    // kMinOutput = -1;
+    // maxRPM = 5700;
 
-    m_pidController.setP(kP);
-    m_pidController.setI(kI);
-    m_pidController.setD(kD);
-    m_pidController.setIZone(kIz);
-    m_pidController.setFF(kFF);
-    m_pidController.setOutputRange(kMinOutput, kMaxOutput);
+    // m_pidController.setP(kP);
+    // m_pidController.setI(kI);
+    // m_pidController.setD(kD);
+    // m_pidController.setIZone(kIz);
+    // m_pidController.setFF(kFF);
+    // m_pidController.setOutputRange(kMinOutput, kMaxOutput);
 
   }
 
   public CANSparkMax SmartMotionInit(int deviceID) {
     CANSparkMax motor = new CANSparkMax(deviceID, MotorType.kBrushless);
-    motor.restoreFactoryDefaults();
-    CANPIDController pid = motor.getPIDController();
-    // encoder = motor.getEncoder();
+    // motor.restoreFactoryDefaults();
+    // CANPIDController pid = motor.getPIDController();
+    // // encoder = motor.getEncoder();
 
-    kP = 6e-5;
-    kI = 0;
-    kD = 0;
-    kIz = 0;
-    kFF = 0.000015;
-    kMaxOutput = 1;
-    kMinOutput = -1;
-    maxRPM = 5700;
+    // kP = 6e-5;
+    // kI = 0;
+    // kD = 0;
+    // kIz = 0;
+    // kFF = 0.000015;
+    // kMaxOutput = 1;
+    // kMinOutput = -1;
+    // maxRPM = 5700;
+    // maxVel = 5700; // rpm
+    // maxAcc = 15000;
 
-    pid.setP(kP);
-    pid.setI(kI);
-    pid.setD(kD);
-    pid.setIZone(kIz);
-    pid.setFF(kFF);
-    pid.setOutputRange(kMinOutput, kMaxOutput);
+    // pid.setP(kP);
+    // pid.setI(kI);
+    // pid.setD(kD);
+    // pid.setIZone(kIz);
+    // pid.setFF(kFF);
+    // pid.setOutputRange(kMinOutput, kMaxOutput);
+
+    // int smartMotionSlot = 0;
+    // pid.setSmartMotionMaxVelocity(maxVel, smartMotionSlot);
+    // pid.setSmartMotionMinOutputVelocity(minVel, smartMotionSlot);
+    // pid.setSmartMotionMaxAccel(maxAcc, smartMotionSlot);
+    // pid.setSmartMotionAllowedClosedLoopError(allowedErr, smartMotionSlot);
 
     return motor;
 
@@ -237,31 +245,31 @@ public class Robot extends TimedRobot {
 
     // if PID coefficients on SmartDashboard have changed, write new values to
     // controller
-    if ((p != kP)) {
-      m_pidController.setP(p);
-      kP = p;
-    }
-    if ((i != kI)) {
-      m_pidController.setI(i);
-      kI = i;
-    }
-    if ((d != kD)) {
-      m_pidController.setD(d);
-      kD = d;
-    }
-    if ((iz != kIz)) {
-      m_pidController.setIZone(iz);
-      kIz = iz;
-    }
-    if ((ff != kFF)) {
-      m_pidController.setFF(ff);
-      kFF = ff;
-    }
-    if ((max != kMaxOutput) || (min != kMinOutput)) {
-      m_pidController.setOutputRange(min, max);
-      kMinOutput = min;
-      kMaxOutput = max;
-    }
+    // if ((p != kP)) {
+    // m_pidController.setP(p);
+    // kP = p;
+    // }
+    // if ((i != kI)) {
+    // m_pidController.setI(i);
+    // kI = i;
+    // }
+    // if ((d != kD)) {
+    // m_pidController.setD(d);
+    // kD = d;
+    // }
+    // if ((iz != kIz)) {
+    // m_pidController.setIZone(iz);
+    // kIz = iz;
+    // }
+    // if ((ff != kFF)) {
+    // m_pidController.setFF(ff);
+    // kFF = ff;
+    // }
+    // if ((max != kMaxOutput) || (min != kMinOutput)) {
+    // m_pidController.setOutputRange(min, max);
+    // kMinOutput = min;
+    // kMaxOutput = max;
+    // }
 
     /**
      * PIDController objects are commanded to a set point using the SetReference()
@@ -273,13 +281,13 @@ public class Robot extends TimedRobot {
      * The second parameter is the control type can be set to one of four
      * parameters: com.revrobotics.ControlType.kDutyCycle
      * com.revrobotics.ControlType.kPosition com.revrobotics.ControlType.kVelocity
-     * com.revrobotics.ControlType.kVoltage
+     * com.revrobotics.ControlType.kVoltage //
      */
-    final double setPoint = xBoxCtrlr.getY(Hand.kRight) * maxRPM;
-    m_pidController.setReference(setPoint, ControlType.kVelocity);
+    // final double setPoint = xBoxCtrlr.getY(Hand.kRight) * maxRPM;
+    // m_pidController.setReference(setPoint, ControlType.kVelocity);
 
-    SmartDashboard.putNumber("SetPoint", setPoint);
-    SmartDashboard.putNumber("ProcessVariable", m_encoder.getVelocity());
+    // SmartDashboard.putNumber("SetPoint", setPoint);
+    // SmartDashboard.putNumber("ProcessVariable", m_encoder.getVelocity());
 
   }
 
@@ -334,16 +342,18 @@ public class Robot extends TimedRobot {
     }
 
     if (xBoxCtrlr.getTriggerAxis(Hand.kLeft) > .5 && xBoxCtrlr.getTriggerAxis(Hand.kRight) > .5) {
-      maxSpd = .9;
+      maxSpd = 1;
     }
     DriveManual(maxSpd, .08);
     // -------------------------------------------- end set speed using triggers
 
     InfeedManual();
     ClimbUpDn();
-    emptyMagRapidFire();
+    //emptyMagRapidFire();
+    shootTheBalls();
     colorWheel();
     motorInfeedWinchUpDn();
+    motorMagIO();
   }
 
   /**
@@ -419,44 +429,65 @@ public class Robot extends TimedRobot {
   boolean shootAllBalls = false;
   int countCalled = 0;
 
-  private void emptyMagRapidFire() { // shoot all balls in the mag.
-    // BUtton ids - 1->Low, 2->Med, 3->high
-    double spdTopWheel = .9;
-    double spdLowWHeel = .9;
-    int maxTimesCalled = 50;
+  // private void emptyMagRapidFire() { // shoot all balls in the mag.
+  //   // BUtton ids - 1->Low, 2->Med, 3->high
+  //   double spdTopWheel = .9;
+  //   double spdLowWHeel = .9;
+  //   int maxTimesCalled = 50;
 
-    if (countCalled > maxTimesCalled) {
-      countCalled = 0;
-      shootAllBalls = false;
-    }
+  //   System.out.println("Count Called (stop trigger > 50):" + countCalled);
+  //   if (countCalled > maxTimesCalled) {
+  //     countCalled = 0;
+  //     shootAllBalls = false;
+  //   }
 
-    if (buttonBoard.getRawButton(1)) { // shoot at lower target
-      shootAllBalls = true;
-      spdLowWHeel = .25;
-    }
+  //   if (buttonBoard.getRawButton(1)) { // shoot at lower target
+  //     shootAllBalls = true;
+  //     spdLowWHeel = .25;
+  //   }
 
-    if (buttonBoard.getRawButton(2)) { // shoot at med target
-      shootAllBalls = true;
-      spdLowWHeel = .5;
-    }
+  //   if (buttonBoard.getRawButton(2)) { // shoot at med target
+  //     shootAllBalls = true;
+  //     spdLowWHeel = .5;
+  //   }
 
+  //   if (buttonBoard.getRawButton(3)) { // shoot at high target
+  //     shootAllBalls = true;
+  //   }
+
+  //   if (shootAllBalls && countCalled == 0) {
+  //     motorShootBottom.set(spdLowWHeel); // ramp up wheels
+  //     motorShootTop.set(-spdTopWheel);
+  //     // Timer.delay(0.5); // wait half second
+
+  //     motorMagazine.set(.25); // start feeding balls
+  //     // Timer.delay(2); // wait 2 seconds
+
+  //     motorMagazine.stopMotor(); // stop feeding bals
+  //     motorShootBottom.stopMotor(); // stop shooter wheels
+  //     motorShootTop.stopMotor();
+  //   }
+  //   countCalled = (shootAllBalls ? countCalled++ : 0);
+  // }
+
+  private void shootTheBalls() {
     if (buttonBoard.getRawButton(3)) { // shoot at high target
-      shootAllBalls = true;
-    }
-
-    if (shootAllBalls && countCalled == 0) {
-      motorShootBottom.set(spdLowWHeel); // ramp up wheels
-      motorShootTop.set(-spdTopWheel);
-      Timer.delay(0.5); // wait half second
-
-      motorMagazine.set(.25); // start feeding balls
-      Timer.delay(2); // wait 2 seconds
-
-      motorMagazine.stopMotor(); // stop feeding bals
+      motorShootBottom.set(1); // ramp up wheels
+      motorShootTop.set(-1);
+      //motorMagazine.set(.25); // start feeding balls
+    } else if (buttonBoard.getRawButton(2)) { // shoot at mid target
+      motorShootBottom.set(1); // ramp up wheels
+      motorShootTop.set(-.75);
+      //motorMagazine.set(.25); // start feeding balls
+    } else if (buttonBoard.getRawButton(1)) { // shoot at low target
+      motorShootBottom.set(1); // ramp up wheels
+      motorShootTop.set(-.5);
+      //motorMagazine.set(.25); // start feeding balls
+    } else {
+    //  motorMagazine.stopMotor(); // stop feeding bals
       motorShootBottom.stopMotor(); // stop shooter wheels
       motorShootTop.stopMotor();
     }
-    countCalled = (shootAllBalls ? countCalled++ : 0);
   }
 
   private void colorWheel() {
@@ -469,9 +500,9 @@ public class Robot extends TimedRobot {
     }
   }
 
-  private void motorInfeedWinchUpDn() {  //-- raise / lower intake arm
-    double UpDn = buttonBoard.getY();  //-- joystick puller back or pushed forward
-    double WinchSpd = .25;   //-- speed to raise / lower arm
+  private void motorInfeedWinchUpDn() { // -- raise / lower intake arm
+    double UpDn = buttonBoard.getY(); // -- joystick puller back or pushed forward
+    double WinchSpd = .25; // -- speed to raise / lower arm
 
     if (UpDn == 1) {
       motorInfeedWinch.set(WinchSpd);
@@ -479,6 +510,17 @@ public class Robot extends TimedRobot {
       motorInfeedWinch.set(-WinchSpd);
     } else {
       motorInfeedWinch.stopMotor();
+    }
+  }
+
+  private void motorMagIO() { // -- raise / lower intake arm
+
+    if (buttonBoard.getRawButton(6)) {
+      motorMagazine.set(.25);
+    } else if (buttonBoard.getRawButton(10)) {
+      motorMagazine.set(-.25);
+    } else {
+      motorMagazine.stopMotor();
     }
   }
 
